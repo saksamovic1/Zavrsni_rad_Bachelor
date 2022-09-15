@@ -22,13 +22,12 @@ tft=TFT(spi,16,17,18)
 tft.initr()
 tft.rgb(True)
 
-machine.freq(160000000)
 
 mqtt_client_id      = bytes('client_'+'12321', 'utf-8') # Just a random client ID
 
 ADAFRUIT_IO_URL     = 'io.adafruit.com' 
 ADAFRUIT_USERNAME   = 'sandinapuff'
-ADAFRUIT_IO_KEY     = 'aio_nQjv806MN8M0HkIQkYwYcfHxkpAQ' 
+ADAFRUIT_IO_KEY     = 'aio_ukMa37ptVoxRjPD93oP6lNLF3i7c' 
 
 TOGGLE_FEED_ID1      = 'increase'
 TOGGLE_FEED_ID2      = 'decrease'
@@ -295,8 +294,6 @@ try:
     client.connect()  
 except Exception as e:
     print('could not connect to MQTT server {}{}'.format(type(e).__name__, e))
-    sys.exit()
-
 
 def cb(topic, msg):                             # Callback function
     global set_temp
@@ -310,30 +307,29 @@ def cb(topic, msg):                             # Callback function
        return_to_display()
          
         
-toggle_feed_up = bytes('{:s}/feeds/{:s}'.format(ADAFRUIT_USERNAME, TOGGLE_FEED_ID1), 'utf-8') # format - techiesms/feeds/relay1
-toggle_feed_down = bytes('{:s}/feeds/{:s}'.format(ADAFRUIT_USERNAME, TOGGLE_FEED_ID2), 'utf-8') # format - techiesms/feeds/relay1   
+toggle_feed_up = bytes('{:s}/feeds/{:s}'.format(ADAFRUIT_USERNAME, TOGGLE_FEED_ID1), 'utf-8') # format - sandinapuff/feeds/increase
+toggle_feed_down = bytes('{:s}/feeds/{:s}'.format(ADAFRUIT_USERNAME, TOGGLE_FEED_ID2), 'utf-8') # format - sandinapuff/feeds/decrease 
 client.set_callback(cb)      # Callback function               
 client.subscribe(toggle_feed_up) # Subscribing to particular topic
 client.subscribe(toggle_feed_down) # Subscribing to particular topic
-
-wdt.feed() 
+ 
 
 while True:
     if (up.value() and not click and options != "options" and options != "weather"): # increase value while in display mode
         change_temp(1)
         options = "display"
         return_to_display()
-    if (down.value() and not click and options != "options" and options != "weather"): # decrease value while in options mode
+    elif (down.value() and not click and options != "options" and options != "weather"): # decrease value while in options mode
         change_temp(-1)
         options = "display"
         return_to_display()
-    if (up.value() and not click and options == "options"): # up button in options mode
+    elif (up.value() and not click and options == "options"): # up button in options mode
         selection(1)
         print_display_options()
-    if (down.value() and not click and options == "options"): # down button in options mode
+    elif (down.value() and not click and options == "options"): # down button in options mode
         selection(-1)
         print_display_options()
-    if (sel.value() and not click and options != "options" and options != "weather"): # sel button when not in options or in wheather
+    elif (sel.value() and not click and options != "options" and options != "weather"): # sel button when not in options or in wheather
         options_timer = 0 # timer to check if sel button is held
         while (sel.value()):
             options_timer += 1
@@ -348,7 +344,7 @@ while True:
             options = "weather" 
             print_display_weather() 
         change_temp(0)
-    if (sel.value() and not click and options != "display"): # sel button when not in options or in wheather
+    elif (sel.value() and not click and options != "display"): # sel button when not in options or in wheather
         click += 1
         options = "display"
         return_to_display()
@@ -360,6 +356,9 @@ while True:
         client.check_msg()
     except:
         client.disconnect()
-        client.connect()
+        try:            
+            client.connect()  
+        except Exception as e:
+            print('could not connect to MQTT server {}{}'.format(type(e).__name__, e))
+    wdt.feed()
     time.sleep_ms(100)
-
